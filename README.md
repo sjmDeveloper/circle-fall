@@ -55,3 +55,27 @@ In the code, this function calculates and returns $v(t)$ dynamically using $r$, 
 # 5. How It Works
 1. Enter radius values (`r`) one by one to spawn balls of different sizes.
 2. Enter `0` to finish adding balls and launch the real-time falling simulation (note: inputting values pauses spawning until `0` is entered, after which the simulation runs at full speed).
+   
+# 6. Prerequisites & Installing SFML
+Before compiling the project, make sure you have **SFML** installed on your system:
+
+* **On Linux (Ubuntu/Debian):** Install directly via terminal:
+  ```bash
+  sudo apt-get update && sudo apt-get install libsfml-dev
+  ```
+  *(Watch step-by-step video guide: [How to install SFML on Linux](https://www.youtube.com/watch?v=Z7CAWvQN8oY))*
+
+* **On Windows:** Download the SDK from the [Official SFML Download Page](https://sfml-dev.org) and link it to your compiler.
+  *(Watch step-by-step video guide: [How to Setup SFML on Windows](https://www.youtube.com/watch?v=qvg8BXXWpCE))*
+
+# 7. How to Run
+1. Open your Terminal (Linux) or CMD (Windows) and navigate to the project folder:
+```bash
+cd your_file_path
+```
+
+2. Compile the code with SFML libraries linked:
+```bash
+g++ main.cpp -o physics_sim -lsfml-graphics -lsfml-window -lsfml-system
+```
+
