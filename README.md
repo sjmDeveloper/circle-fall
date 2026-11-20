@@ -1,81 +1,99 @@
-# 1. Idea
-A real-life physics simulation of a falling ball in a fluid (air/liquid) accounting for gravity, air resistance (drag), and buoyancy.
+# Falling Ball Fluid Simulation
 
-# 2. Why I Made This
-I wanted to apply the mathematics and physics concepts I studied in high school to build a realistic visual simulation.
+## 1. About the Project & Motivation
+* **Idea:** A real-time 2D physics simulation of falling spheres in a viscous fluid (air or liquid), accounting for gravity, fluid drag (Stokes' law), and buoyancy.
+* **Motivation:** Built to translate analytical mechanics and differential equations into a clean, visual C++ & SFML simulation.
 
-# 3. Mathematics & Physics Side
-By applying Newton's Second Law of Motion:
-$$\sum \vec{F}_{\text{ext}} = m \cdot \vec{a}$$
-$$\vec{P} + \vec{f} + \vec{\Pi} = m \cdot \vec{a}$$
+## 2. Mathematics & Physics Formulation
+Applying Newton's Second Law of Motion along the downward vertical Y-axis:
 
-Projecting onto the vertical Y-axis (downward positive):
-$$P - f - \Pi = m \cdot a$$
+$$\sum \vec{F}_{\text{ext}} = m \cdot \vec{a} \implies P - f - \Pi = m \cdot a$$
 
-Where the forces are defined as:
+Where the acting forces are defined as:
 * **Gravity ($P$):** $P = m \cdot g$
-* **Drag force ($f$):** $f = k \cdot v$
+* **Drag Force ($f$):** $f = k \cdot v$ (Stokes' drag for laminar flow)
 * **Buoyancy ($\Pi$):** $\Pi = \rho_f \cdot V_f \cdot g$
 
-Substituting the forces into the equation:
-$$m \cdot g - k \cdot v - \rho_f \cdot V_f \cdot g = m \cdot a$$
+Substituting the forces and setting $a = \frac{dv}{dt}$ yields a first-order linear differential equation:
 
-Dividing the entire equation by mass ($m$) and substituting $a = \frac{dv}{dt}$:
-$$g - \frac{\rho_f \cdot V_f \cdot g}{m} - \frac{k}{m} v = \frac{dv}{dt}$$
-
-Rearranging into a first-order linear differential equation:
 $$\frac{dv}{dt} + \frac{k}{m} v = g \left(1 - \frac{\rho_f \cdot V_f}{m}\right)$$
 
-The analytical solution for the velocity $v(t)$ is:
+Solving this differential equation gives the instantaneous velocity $v(t)$:
+
 $$v(t) = v_{\text{lim}} \left(1 - e^{-\frac{t}{\tau}}\right)$$
 
 Where:
-* **Characteristic time ($\tau$):** $\tau = \frac{m}{k}$
-* **Drag coefficient ($k$):** $k = 6 \pi \eta r$ (Stokes' law)
+* **Terminal Velocity ($v_{\text{lim}}$):** $v_{\text{lim}} = \frac{m \cdot g}{k} \left(1 - \frac{\rho_f \cdot V_f}{m}\right)$
+* **Characteristic Time ($\tau$):** $\tau = \frac{m}{k}$
+* **Drag Coefficient ($k$):** $k = 6 \pi \eta r$
 * **Mass ($m$):** $m = \rho \cdot V$
 
-In the code, this function calculates and returns $v(t)$ dynamically using $r$, $m$, and $k$.
+## 3. Software Architecture (C++ & SFML)
 
-# 4. Programming Side (C++ & SFML)
+### `Circle` Class
+* Encapsulates the sphere's **radius** (`r`) and rendering resolution (`numOfPoints = 30`).
+* Implements physical property methods: `Circle::m()`, `Circle::k()`, `Circle::tau()`, and `Circle::v_lim()`.
+* Computes instantaneous velocity dynamically via `Circle::v()` using the analytical exponential formula.
 
-## `Circle` Class
-* Defined by its **radius** (`r`) and **point count** (`numOfPoints = 30`).
-* Includes member methods to calculate physical properties: `Circle::m()`, `Circle::tau()` ($\tau$), `Circle::k()`, and terminal velocity `Circle::v_lim()`.
-* Computes instantaneous velocity using: `Circle::v() = Circle::v_lim() * (1 - exp(-t / Circle::tau()))`.
+### Simulation State & Loop
+* `t` (`sf::Clock`): Tracks elapsed simulation time.
+* `circles` (`sf::CircleShape[999]`): Fixed-size array storing up to 999 active spheres.
+* `sizeOfCircles` (`size_t`): Tracks the count of spawned spheres.
+* **Two-Phase Execution:**
+  1. **Spawning Phase:** Prompts the user via console to enter radius values (`r`). Entering `0` terminates input and launches the physics loop.
+  2. **Render Loop:** Updates each sphere's vertical displacement using `circle.v()` and renders frames in real time.
 
-## Main Loop Variables
-* `t` (`sf::Clock`): Measures the elapsed time since the start of the simulation.
-* `circles` (`sf::CircleShape[999]`): An array storing up to 999 circle objects.
-* `sizeOfCircles` (`size_t`): Tracks the active number of circles.
+## 4. Prerequisites & Installing SFML
+Before compiling the project, ensure you have **SFML** and a C++ compiler (`g++`) installed:
 
-## User Input & Simulation Loop
-* **Input:** Prompts the user to enter a radius `r` (`float`). Entering a non-zero value creates a new circle with radius `r`. Entering `0` stops the input phase and starts the simulation.
-* **While Loop:** Iterates through all active circles, updates their vertical positions using `circle.v()`, and renders them on the window frame by frame.
+### Linux
+*(Watch step-by-step video guide: [How to install SFML on Linux](https://www.youtube.com/watch?v=Z7CAWvQN8oY))*
 
-# 5. How It Works
-1. Enter radius values (`r`) one by one to spawn balls of different sizes.
-2. Enter `0` to finish adding balls and launch the real-time falling simulation (note: inputting values pauses spawning until `0` is entered, after which the simulation runs at full speed).
-   
-# 6. Prerequisites & Installing SFML
-Before compiling the project, make sure you have **SFML** installed on your system:
-
-* **On Linux (Ubuntu/Debian):** Install directly via terminal:
+* **Ubuntu / Debian / Mint:**
   ```bash
-  sudo apt-get update && sudo apt-get install libsfml-dev
+  sudo apt-get update && sudo apt-get install libsfml-dev g++
   ```
-  *(Watch step-by-step video guide: [How to install SFML on Linux](https://www.youtube.com/watch?v=Z7CAWvQN8oY))*
+* **Fedora / RHEL / CentOS:**
+  ```bash
+  sudo dnf install SFML-devel gcc-c++
+  ```
+* **Arch Linux / Manjaro:**
+  ```bash
+  sudo pacman -S sfml gcc
+  ```
+* **openSUSE:**
+  ```bash
+  sudo zypper install sfml2-devel gcc-c++
+  ```
+* **Alpine Linux:**
+  ```bash
+  sudo apk add sfml-dev g++
+  ```
+* **Other Distributions:** Download the source or SDK from the [Official SFML Download Page](https://sfml-dev.org).
 
-* **On Windows:** Download the SDK from the [Official SFML Download Page](https://sfml-dev.org) and link it to your compiler.
-  *(Watch step-by-step video guide: [How to Setup SFML on Windows](https://www.youtube.com/watch?v=qvg8BXXWpCE))*
+### Windows
+Download the SDK from the [Official SFML Download Page](https://sfml-dev.org) and link it to your compiler (Visual Studio / MinGW).
+*(Watch step-by-step video guide: [How to Setup SFML on Windows](https://www.youtube.com/watch?v=qvg8BXXWpCE))*
 
-# 7. How to Run
-1. Open your Terminal (Linux) or CMD (Windows) and navigate to the project folder:
+## 5. Build & Run
+
+### 1. Clone & Compile
+Open your Terminal (Linux) or Command Prompt (Windows) and run:
 ```bash
-cd your_file_path
-```
-
-2. Compile the code with SFML libraries linked:
-```bash
+git clone https://github.com
+cd YOUR_REPO_NAME
 g++ main.cpp -o physics_sim -lsfml-graphics -lsfml-window -lsfml-system
 ```
 
+### 2. Run the Simulation
+* **On Linux:**
+  ```bash
+  ./physics_sim
+  ```
+* **On Windows (CMD):**
+  ```cmd
+  physics_sim.exe
+  ```
+
+## 6. Version
+`1.0.0`
